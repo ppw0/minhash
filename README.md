@@ -24,7 +24,9 @@ an implementation of the MinHash algorithm in Python.
 # lessons learned.
 - an introduction of a simple heuristic can significantly decrease running time while still finding a large majority of similar files.
 - don't use `map` if the input iterator is very large; it will lead to a segmentation fault. this came up while trying to generate pairs for the `hashcount` function, until that whole approach was discarded and replaced with a much better one.
-- don't use `imap_unordered`. apparently it has a memory leak: https://stackoverflow.com/questions/40922526/memory-usage-steadily-growing-for-multiprocessing-pool-imap-unordered (example: 620000 signatures take up 6 GB of RAM during comparison phase with imap_unordered)
+- with `imap` and `imap_unordered`, if the function returns results faster than they can be consumed, you will experience a memory bubble (example: 620000 signatures take up 6 GB of RAM during comparison phase with imap_unordered and a `for` loop to sort results):
+    - https://stackoverflow.com/questions/40922526/memory-usage-steadily-growing-for-multiprocessing-pool-imap-unordered
+    - https://stackoverflow.com/questions/9862091/iteration-over-pool-imap-unordered
 - pypy3 is significantly faster than python3, but it cannot be used with Numba.
 - minimize your inputs before passing them off to a function. (example: the near-exponential memory bubble made by the networkx `connected_components` function for huge inputs, e.g. a full list of matching pairs instead of a preliminary sorted set)
 - when in doubt, vectorize.
