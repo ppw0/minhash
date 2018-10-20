@@ -23,12 +23,14 @@ an implementation of the MinHash algorithm in Python.
 
 # lessons learned.
 - an introduction of a simple heuristic can significantly decrease running time while still finding a large majority of similar files.
-- don't use and `map` and `imap` if the input iterator is very large; `map` will lead to a segmentation fault, while `imap` may greatly increase running time, even with adjusted chunksize and the use of an initializer, which may help somewhat. possible causes: global interpreter lock, serialization overhead. this came up while trying to generate pairs for the `hashcount` function, until that whole approach was discarded and replaced with a much better one.
-- pypy3 is *significantly* faster than python3, but it cannot be used with Numba.
+- don't use `map` if the input iterator is very large; it will lead to a segmentation fault. this came up while trying to generate pairs for the `hashcount` function, until that whole approach was discarded and replaced with a much better one.
+- don't use `imap_unordered`. apparently it has a memory leak: https://stackoverflow.com/questions/40922526/memory-usage-steadily-growing-for-multiprocessing-pool-imap-unordered (example: 620000 signatures take up 6 GB of RAM during comparison phase with imap_unordered)
+- pypy3 is significantly faster than python3, but it cannot be used with Numba.
+- minimize your inputs before passing them off to a function. (example: the near-exponential memory bubble made by the networkx `connected_components` function for huge inputs, e.g. a full list of matching pairs instead of a preliminary sorted set)
 - when in doubt, vectorize.
 
 # some measurements.
-a random selection of non-duplicate text files of varying size (0-1767kb). cpu: i7-3770.
+a random selection of non-duplicate text files of varying sizes (0-1767kb). cpu: i7-3770.
 
 |       script      | interpreter | 1500       | 5000     |   10000   |   20000    |    50000   |
 | :---------------- | ----------- | :--------- | :------- | :-------- | :--------- | :--------- |
