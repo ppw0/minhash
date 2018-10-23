@@ -54,11 +54,11 @@ def initializer(init_data):
     global aux_data
     aux_data = init_data    
     
-def hashcount(i):
+def hashcount_wrapper(var_data):
     signatures, _, _ = aux_data
-    indexes = set(hashcount_jit(i,signatures))
+    indexes = set(hashcount_jit(var_data,signatures))
     if len(indexes) > 0:
-        indexes.add(i)
+        indexes.add(var_data)
         return indexes
         
 def shingle_wrapper(var_data):
@@ -92,11 +92,11 @@ if __name__ == '__main__':
         for i in tqdm(p.imap(shingle_wrapper,range(filenum),chunksize=100), total=filenum, 
             desc="shingling"):
             pass
-        
+    
         # compare signatures
         results = []
-        for s in tqdm(p.imap_unordered(hashcount,range(1,filenum),chunksize=100), total=filenum-1,
-            desc="comparing"):
+        for s in tqdm(p.imap_unordered(hashcount_wrapper,range(1,filenum),chunksize=100),
+            total=filenum-1, desc="comparing"):
             if s is not None:
                 results_updated = False
                 for r in results:
