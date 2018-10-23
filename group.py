@@ -26,7 +26,7 @@ def igroup(related):
 def group(related):
     return list(connected_components(to_graph(related)))
         
-def print_groups(g): # print common groups
+def print_groups(g): # print groups
     count = 0
     l = []
     for s in g:
@@ -34,8 +34,21 @@ def print_groups(g): # print common groups
         l.append(sorted(s))
     l.sort()
     for sublist in l:
-        print(sublist)
-    print("%d elements in %d common groups" %(count,len(g)))
+        for el in sublist:
+            print(str(el)+" ",end='')
+        print("")
+    print("%d elements in %d groups" %(count,len(g)))
+    print("%d dupes" %(count-len(g)))
+    
+def print_groups_unordered(g):
+    count = 0
+    for s in g:
+        count += len(s)
+        for el in s:
+            print(str(el)+" ",end='')
+        print("")
+    print("%d elements in %d groups" %(count,len(g)))
+    print("%d dupes" %(count-len(g)))
     
 def print_dupes(g): # prints all related items but one
     l = []
@@ -53,3 +66,10 @@ def print_dupes_unordered(g):
     for s in g:
         while len(s) > 1:
             print(s.pop())
+
+def print_stats(g):
+    count = 0
+    for s in g:
+        count += len(s)
+    print("%d elements in %d groups" %(count,len(g)))
+    print("%d dupes" %(count-len(g)))
