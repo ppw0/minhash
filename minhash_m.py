@@ -8,6 +8,7 @@ from __future__ import division
 from binascii import crc32
 from tqdm import tqdm # pretty progress bars
 import ctypes
+import group
 import multiprocessing as mp
 import os
 import random
@@ -48,28 +49,25 @@ if __name__ == '__main__':
     coefs = [[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)]
     
     # get list of files
+    files = os.listdir('.')
+    
     if len(sys.argv) > 1:
         filenum = int(sys.argv[1])
-        files = os.listdir('.')[:filenum]
+        files = files[:filenum]
     else:
-        files = os.listdir('.')
         filenum = len(files)
 
     # shared array
     signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)
     
     # initialize pool
-    p = mp.Pool(mp.cpu_count())
+    with mp.Pool(mp.cpu_count()) as p:
     
-    for i in tqdm(p.imap(processfile,range(filenum),chunksize=100),total=filenum):
-        pass
+        for i in tqdm(p.imap(processfile,range(filenum),chunksize=100),total=filenum):
+            pass
         
-    results = [r for l in tqdm(p.imap_unordered(hashcount,range(1,filenum),chunksize=100),
-        total=filenum-1) for r in l]
-        
-    p.close()
-    p.join()
+        results = [r for l in tqdm(p.imap_unordered(hashcount,range(1,filenum),chunksize=100),
+            total=filenum-1) for r in l]
 
     # group results
-    import group
     group.print_dupes(group.group(results))

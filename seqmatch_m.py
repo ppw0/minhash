@@ -4,6 +4,11 @@
 
 # similarity function based on SequenceMatcher
 from difflib import SequenceMatcher as sm
+import group
+import itertools
+import multiprocessing as mp
+import os
+
 def smratio(pair):
 	f1,f2 = pair
 	while True:
@@ -16,13 +21,12 @@ def smratio(pair):
 	return (r,f1,f2)
 
 if __name__ == '__main__':
-	import itertools, os
-	pairs = itertools.combinations(os.listdir(os.getcwd()),2) # get folder contents and generate all unordered pairs of files
+
+    # get folder contents and generate all unordered pairs of files
+	pairs = itertools.combinations(os.listdir(os.getcwd()),2)
 	
-	import multiprocessing as mp
-	p = mp.Pool(mp.cpu_count())
+    with mp.Pool(mp.cpu_count()) as p:
 	
-	similar = [[f1,f2] for r,f1,f2 in p.imap_unordered(smratio,pairs) if r > 80]
+        similar = [[f1,f2] for r,f1,f2 in p.imap_unordered(smratio,pairs) if r > 80]
 	
-	import group
 	group.print_dupes(group.group(similar))

@@ -9,6 +9,7 @@ from __future__ import division
 from binascii import crc32
 from tqdm import tqdm # pretty progress bars
 import ctypes
+import group
 import multiprocessing as mp
 import os
 import random
@@ -80,17 +81,13 @@ if __name__ == '__main__':
     # initialize pool
     aux_data = (signatures,files,coefs)
     
-    p = mp.Pool(mp.cpu_count(), initializer, (aux_data,))
+    with mp.Pool(mp.cpu_count(), initializer, (aux_data,)) as p:
     
-    for i in tqdm(p.imap(processfile_wrapper,range(filenum),chunksize=100),total=filenum):
-        pass
+        for i in tqdm(p.imap(processfile_wrapper,range(filenum),chunksize=100),total=filenum):
+            pass
         
-    results = [r for l in tqdm(p.imap_unordered(hashcount_wrapper,range(1,filenum),chunksize=100),
-        total=filenum-1) for r in l]
-        
-    p.close()
-    p.join()
+        results = [r for l in tqdm(p.imap_unordered(hashcount_wrapper,range(1,filenum),
+            chunksize=100),total=filenum-1) for r in l]
 
     # group results
-    import group
     group.print_dupes(group.group(results))

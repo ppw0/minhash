@@ -7,6 +7,7 @@
 from __future__ import division
 from binascii import crc32
 from tqdm import tqdm # pretty progress bars
+import group
 import os
 import random
 import re
@@ -20,11 +21,12 @@ t = 0.7 # similarity threshold
 if __name__ == '__main__':
 
     # get list of files
+    files = os.listdir('.')
+    
     if len(sys.argv) > 1:
         filenum = int(sys.argv[1])
-        files = os.listdir('.')[:filenum]
+        files = files[:filenum]
     else:
-        files = os.listdir('.')
         filenum = len(files)
 
     # random hash function: h(x) = (a*x + b) % c
@@ -65,5 +67,4 @@ if __name__ == '__main__':
                 results.append((files[i],files[j]))
     
     # group results
-    import group
     group.print_dupes(group.group(results))

@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# group.py: groups related items into lists.
+# group.py: groups related items together.
 
-# finding related items in a list of lists is finding connected components in a graph
+# finding common items in a group of lists is finding connected components in a graph
 import networkx
 from networkx.algorithms.components.connected import connected_components
 
-def to_edges(lst): # l is a list of lists
+def to_edges(lst):
     it = iter(lst)
     last = next(it)
     for current in it:
@@ -20,46 +20,32 @@ def to_graph(lst):
         G.add_edges_from(to_edges(sublist))
     return G
 
-def igroup(related):
-    return connected_components(to_graph(related)) # iterator
+def igroup(lst):
+    return connected_components(to_graph(lst))
     
-def group(related):
-    return list(connected_components(to_graph(related)))
-        
-def print_groups(g): # print groups
-    count = 0
-    l = []
-    for s in g:
-        count += len(s)
-        l.append(sorted(s))
+def group(lst):
+    return list(igroup(lst))
+
+def print_groups(g):
+    l = [sorted(s) for s in g]
     l.sort()
     for sublist in l:
         for el in sublist:
             print(str(el)+" ",end='')
         print("")
-    print("%d elements in %d groups" %(count,len(g)))
-    print("%d dupes" %(count-len(g)))
+    print_stats(g)
     
 def print_groups_unordered(g):
-    count = 0
-    for s in g:
-        count += len(s)
-        for el in s:
+    for sublist in g:
+        for el in sublist:
             print(str(el)+" ",end='')
         print("")
-    print("%d elements in %d groups" %(count,len(g)))
-    print("%d dupes" %(count-len(g)))
     
-def print_dupes(g): # prints all related items but one
-    l = []
-    count = 0
-    for s in g:
-        while len(s) > 1:
-            l.append(s.pop())
-            count += 1
+def print_dupes(g):
+    count = sum(len(s) for s in g)
+    l = [s.pop() for s in g while len(s) > 1]
     l.sort()
-    for item in l:
-        print(item)
+    map(print,l)
     print("%d dupes" % (count))
 
 def print_dupes_unordered(g):
@@ -68,8 +54,5 @@ def print_dupes_unordered(g):
             print(s.pop())
 
 def print_stats(g):
-    count = 0
-    for s in g:
-        count += len(s)
-    print("%d elements in %d groups" %(count,len(g)))
-    print("%d dupes" %(count-len(g)))
+    count = sum(len(s) for s in g)
+    print("%d elements in %d groups, %d dupes" %(count,len(g),count-len(g)))

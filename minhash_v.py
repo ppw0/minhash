@@ -10,6 +10,7 @@ from __future__ import division
 from binascii import crc32
 from tqdm import tqdm # pretty progress bars
 import ctypes
+import group
 import multiprocessing as mp
 import numba as nb
 import numpy as np
@@ -108,7 +109,6 @@ if __name__ == '__main__':
                     results.append(s)
     
     # group results
-    import group
     results = group.group(results)
     
     # print results
