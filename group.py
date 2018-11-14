@@ -43,7 +43,10 @@ def print_groups_unordered(g):
     
 def print_dupes(g):
     count = sum(len(s) for s in g)
-    l = [s.pop() for s in g while len(s) > 1]
+    l = []
+    for s in g:
+        while len(s) > 1:
+            l.append(s.pop())
     l.sort()
     map(print,l)
     print("%d dupes" % (count))
