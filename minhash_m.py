@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# minhash_m.py: minhash.py with multiprocessing, shared memory access and simplified data 
-# structures for performance reasons. takes advantage of copy-on-write memory. usable only on 
-# Unix-like systems due to lack of os.fork() on Windows.
+# minhash_m.py
 
 from __future__ import division
 from binascii import crc32
@@ -52,10 +50,9 @@ if __name__ == '__main__':
     files = os.listdir('.')
     
     if len(sys.argv) > 1:
-        filenum = int(sys.argv[1])
-        files = files[:filenum]
-    else:
-        filenum = len(files)
+        files = files[:int(sys.argv[1])]
+        
+    filenum = len(files)
 
     # shared array
     signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)

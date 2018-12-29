@@ -37,63 +37,62 @@ def shingle(i, aux_data):
 
     # files with less than three words or terms are treated as duplicates
     shingles = {crc32((w[j]+" "+w[j+1]+" "+w[j+2]).encode()) & 0xffffffff for j in range(len(w)-2)}
-  
+
     # build signature vectors
     if len(shingles) == 0:
         signatures[i] = C + 1
     else:
         signatures[i] = signature_jit(shingles, coeffs)
-    
+
 @nb.njit(fastmath=True)
 def hashcount_jit(i, signatures):
     sig_i = signatures[i]
     return [j for j in range(i-1, -1, -1) if np.sum(sig_i == signatures[j]) > t*NF]
 
 aux_data = None
-            
+
 def initializer(init_data):
     global aux_data
-    aux_data = init_data    
-    
+    aux_data = init_data
+
 def hashcount_wrapper(var_data):
     signatures, _, _ = aux_data
     indexes = set(hashcount_jit(var_data,signatures))
     if len(indexes) > 0:
         indexes.add(var_data)
         return indexes
-        
+
 def shingle_wrapper(var_data):
     return shingle(var_data, aux_data)
 
 if __name__ == '__main__':
-    
+
     # random hash function: h(x) = (a*x + b) % c
     # x - input value, coefs - random coefficients
     # coeffs can contain duplicates, but the probability of that is very small
     coeffs = np.array([[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)])
-    
-    # get list of files    
+
+    # get list of files
     files = [f for f in os.listdir('.') if f.endswith(".txt")]
-    
+
     if len(sys.argv) > 1:
-        filenum = int(sys.argv[1])
-        files = files[:filenum]
-    else:
-        filenum = len(files)
+        files = files[:int(sys.argv[1])]
+        
+    filenum = len(files)
 
     # shared array
     signatures = np.ctypeslib.as_array(mp.RawArray(ctypes.c_ulong, filenum*NF)).reshape(filenum,NF)
-    
+
     # initialize pool
     aux_data = (signatures, files, coeffs)
-    
+
     with mp.Pool(mp.cpu_count(), initializer, (aux_data,)) as p:
-    
+
         # shingle the files and create signatures
-        for i in tqdm(p.imap(shingle_wrapper,range(filenum),chunksize=100), total=filenum, 
+        for i in tqdm(p.imap(shingle_wrapper,range(filenum),chunksize=100), total=filenum,
             desc="shingling"):
             pass
-    
+
         # compare signatures
         results = []
         for s in tqdm(p.imap_unordered(hashcount_wrapper,range(1,filenum),chunksize=100),
@@ -107,10 +106,10 @@ if __name__ == '__main__':
                         break
                 if results_updated is False:
                     results.append(s)
-    
+
     # group results
     results = group.group(results)
-    
+
     # print results
     count = 0
     for s in results:
@@ -119,4 +118,4 @@ if __name__ == '__main__':
             print(files[index],end=' ')
         print("")
     print("%d files in %d groups" %(count,len(results)))
-    
+

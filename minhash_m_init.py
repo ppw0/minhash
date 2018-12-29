@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# minhash_m_init.py: Windows-compatible version of minhash_m.py, with an initializer to preserve
-# global variable states. comparable running time to Unix-only version. special thanks to Venkatesh
-# Prasad Ranganath: https://medium.com/@rvprasad/data-and-chunk-sizes-matter-when-using-multiproces
-# sing-pool-map-in-python-5023c96875ef
+# minhash_m_init.py
 
 from __future__ import division
 from binascii import crc32
@@ -68,12 +65,12 @@ if __name__ == '__main__':
     coefs = [[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)]
 
     # get list of files
+    files = os.listdir('.')
+    
     if len(sys.argv) > 1:
-        filenum = int(sys.argv[1])
-        files = os.listdir('.')[:filenum]
-    else:
-        files = os.listdir('.')
-        filenum = len(files)
+        files = files[:int(sys.argv[1])]
+        
+    filenum = len(files)
 
     # shared array
     signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)

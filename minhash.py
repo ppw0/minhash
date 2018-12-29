@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# minhash.py: return all similar text files quickly. based on MinHash and Jaccard similarity
-# estimation algorithms. useful only for small document sizes (n < 5000). special thanks to Chris
-# McCormick: http://mccormickml.com/2015/06/12/minhash-tutorial-with-python-code/
+# minhash.py
 
 from __future__ import division
 from binascii import crc32
@@ -24,10 +22,9 @@ if __name__ == '__main__':
     files = os.listdir('.')
     
     if len(sys.argv) > 1:
-        filenum = int(sys.argv[1])
-        files = files[:filenum]
-    else:
-        filenum = len(files)
+        files = files[:int(sys.argv[1])]
+        
+    filenum = len(files)
 
     # random hash function: h(x) = (a*x + b) % c
     # x - input value, coefs - random coefficients

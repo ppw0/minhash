@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# minhash_dss.py: minhash_m.py with a simple neighbor heuristic to delimit search space, potentially
-# significantly reducing running time while still covering a large majority of results.
+# minhash_dss.py
 
 from __future__ import division
 from binascii import crc32
@@ -58,10 +57,9 @@ if __name__ == '__main__':
     files.sort(key = lambda x: x[1], reverse = True)
     
     if len(sys.argv) > 1:
-        filenum = int(sys.argv[1])
-        files = files[:filenum]
-    else:
-        filenum = len(files)
+        files = files[:int(sys.argv[1])]
+        
+    filenum = len(files)
 
     # shared array
     signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)
