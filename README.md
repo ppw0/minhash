@@ -13,13 +13,13 @@ an implementation of the MinHash algorithm in Python.
 
 - minhash.py: return all similar text files quickly. based on MinHash and Jaccard similarity estimation algorithms. useful only for small document sizes (n < 5000). special thanks to Chris McCormick: http://mccormickml.com/2015/06/12/minhash-tutorial-with-python-code/
 
-- minhash_m.py: minhash with multiprocessing, shared memory access and simplified data structures for performance reasons. (Unix-like compatible only)
+- minhash_m.py: minhash with multiprocessing, shared memory access and simplified data structures for performance reasons. (Unix compatible only)
 
 - minhash_m_init.py: Windows-compatible version of minhash_m, with an initializer to preserve global variable states. comparable running time to minhash_m. special thanks to Venkatesh Prasad Ranganath: https://medium.com/@rvprasad/data-and-chunk-sizes-matter-when-using-multiprocessing-pool-map-in-python-5023c96875ef
 
 - minhash_dss.py: minhash_m with a simple neighbor heuristic to delimit search space, significantly reducing running time while still covering a large majority of results.
 
-- minhash_v.py: vectorized version of minhash_m, with Numba JIT compiler decoration. the use of an initializer is mandatory - besides the several orders-of-magnitude speedup, it avoids the synchronization stalls with large inputs.
+- minhash_v.py: vectorized version of minhash_m, with Numba JIT compiler decoration. the use of an initializer avoids synchronization stalls with large inputs, a memory bubble, and achieves a several-orders-of-magnitude speedup. Unix-compatible only, as the changes to the NumPy array do not get carried back to the main process in Windows.
 
 # lessons learned.
 - an introduction of a simple heuristic can significantly decrease running time while still finding a large majority of similar files.

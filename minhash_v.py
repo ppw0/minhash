@@ -1,10 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# minhash_v.py: vectorized version of minhash_m.py, with Numba JIT compiler decoration. the use
-# of an initializer is mandatory - besides the several orders-of-magnitude speedup, it avoids the
-# synchronization stalls with large inputs and a memory bubble (probably caused by serialization).
-# not compatible with Windows (the changes written to the numpy array do not get carried back to
-# the main process.)
+# minhash_v.py
 
 from __future__ import division
 from binascii import crc32
