@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # minhash.py
 
@@ -26,10 +26,11 @@ if __name__ == '__main__':
         
     filenum = len(files)
 
-    # random hash function: h(x) = (a*x + b) % c
-    # x - input value, coefs - random coefficients
-    # coefs can contain duplicates, but the probability of that is very small
-    coefs = [[random.randint(0, MAXHASH) for j in range(NF)] for i in range(2)]
+    # random hash function h(x) = (a*x + b) % C
+    # x - input value; a,b - random coefficients
+    
+    # coeffs can contain duplicates, but the probability of that is very small
+    coeffs = [[random.randint(0, MAXHASH) for j in range(NF)] for i in range(2)]
 
     sig = {} # documents represented as signature vectors
     results = []
@@ -41,17 +42,17 @@ if __name__ == '__main__':
             w = re.split("\W+|_", fh.read().lower()) # words
 
         # the following loop hashes shingles from word triplets, but can leave empty shingle
-        # sets, so files with less than three words or terms are treated as duplicates.
+        # sets, so files with less than three words or terms are treated as duplicates
         shingles = {crc32((w[j]+" "+w[j+1]+" "+w[j+2]).encode()) & 0xffffffff for j in 
             range(len(w)-2)}
 
-        # building signature vectors
+        # build signature vectors
         sig_vec = []
 
         for j in range(NF):
-            minhash = C + 1 # max possible hash value
+            minhash = C + 1 # highest possible hash value
             for shingle in shingles:
-                hashcode = (coefs[0][j]*shingle + coefs[1][j]) % C
+                hashcode = (coeffs[0][j]*shingle + coeffs[1][j]) % C
                 if hashcode < minhash:
                     minhash = hashcode
             sig_vec.append(minhash)
@@ -63,5 +64,5 @@ if __name__ == '__main__':
             if sum(sig_vec[k] == sig[files[j]][k] for k in range(NF)) > t*NF:
                 results.append((files[i],files[j]))
     
-    # group results
+    # group and print results
     group.print_dupes(group.group(results))

@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # minhash_v.py
 
 from __future__ import division
 from binascii import crc32
-from tqdm import tqdm # pretty progress bars
+from tqdm import tqdm
 import ctypes
 import group
 import multiprocessing as mp
@@ -15,10 +15,10 @@ import random
 import re
 import sys
 
-MAXHASH = 2**32-1 # the maximum hash number a shingle can have
-C = 4294967311 # next prime number larger than MAXHASH
-NF = 100 # number of random hash functions to be generated
-t = 0.9 # similarity threshold
+MAXHASH = 2**32-1
+C = 4294967311
+NF = 100
+t = 0.7
 
 @nb.njit(fastmath=True)
 def signature_jit(shingles, coeffs):
@@ -29,12 +29,11 @@ def shingle(i, aux_data):
     signatures, files, coeffs = aux_data
 
     with open(files[i],'r',errors='ignore') as fh:
-        w = re.split("\W+|_",fh.read().lower()) # words
+        w = re.split("\W+|_",fh.read().lower())
 
-    # files with less than three words or terms are treated as duplicates
     shingles = {crc32((w[j]+" "+w[j+1]+" "+w[j+2]).encode()) & 0xffffffff for j in range(len(w)-2)}
 
-    # build signature vectors
+    # build signatures
     if len(shingles) == 0:
         signatures[i] = C + 1
     else:
@@ -63,12 +62,8 @@ def shingle_wrapper(var_data):
 
 if __name__ == '__main__':
 
-    # random hash function: h(x) = (a*x + b) % c
-    # x - input value, coefs - random coefficients
-    # coeffs can contain duplicates, but the probability of that is very small
     coeffs = np.array([[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)])
 
-    # get list of files
     files = [f for f in os.listdir('.') if f.endswith(".txt")]
 
     if len(sys.argv) > 1:
@@ -76,15 +71,13 @@ if __name__ == '__main__':
         
     filenum = len(files)
 
-    # shared array
     signatures = np.ctypeslib.as_array(mp.RawArray(ctypes.c_ulong, filenum*NF)).reshape(filenum,NF)
 
-    # initialize pool
     aux_data = (signatures, files, coeffs)
 
     with mp.Pool(mp.cpu_count(), initializer, (aux_data,)) as p:
 
-        # shingle the files and create signatures
+        # shingle files and create signatures
         for i in tqdm(p.imap(shingle_wrapper,range(filenum),chunksize=100), total=filenum,
             desc="shingling"):
             pass
@@ -103,7 +96,6 @@ if __name__ == '__main__':
                 if results_updated is False:
                     results.append(s)
 
-    # group results
     results = group.group(results)
 
     # print results

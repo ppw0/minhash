@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # minhash_m_init.py
 
 from __future__ import division
 from binascii import crc32
-from tqdm import tqdm # pretty progress bars
+from tqdm import tqdm
 import ctypes
 import group
 import multiprocessing as mp
@@ -13,32 +13,29 @@ import random
 import re
 import sys
 
-MAXHASH = 2**32-1 # the maximum hash number a shingle can have
-C = 4294967311 # next prime number larger than MAXHASH
-NF = 100 # number of random hash functions to be generated
-t = 0.7 # similarity threshold
+MAXHASH = 2**32-1
+C = 4294967311
+NF = 100
+t = 0.7
 
 def processfile(i, aux_data):
 
-    signatures, files, coefs = aux_data
+    signatures, files, coeffs = aux_data
     
     with open(files[i],'r',errors='ignore') as fh:
-        w = re.split("\W+|_",fh.read().lower()) # words
+        w = re.split("\W+|_",fh.read().lower())
 
-    # the following loop hashes shingles from word triplets, but can leave empty shingle
-    # sets, so files with less than three words or terms are treated as duplicates.
     shingles = {crc32((w[j]+" "+w[j+1]+" "+w[j+2]).encode()) & 0xffffffff for j in range(len(w)-2)}
 
-    # building signature vectors
     for j in range(NF):
         minhash = C + 1
         for shingle in shingles:
-            hashcode = (coefs[0][j]*shingle + coefs[1][j]) % C
+            hashcode = (coeffs[0][j]*shingle + coeffs[1][j]) % C
             if hashcode < minhash:
                 minhash = hashcode
         signatures[i*NF+j] = minhash
-        
-def hashcount(i, aux_data): # similarity function based on counting hashes
+
+def hashcount(i, aux_data):
 
     signatures, files, _ = aux_data
     
@@ -59,12 +56,8 @@ def processfile_wrapper(var_data):
     
 if __name__ == '__main__':
     
-    # random hash function: h(x) = (a*x + b) % c
-    # x - input value, coefs - random coefficients
-    # coefs can contain duplicates, but the probability of that is very small
-    coefs = [[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)]
+    coeffs = [[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)]
 
-    # get list of files
     files = os.listdir('.')
     
     if len(sys.argv) > 1:
@@ -72,11 +65,9 @@ if __name__ == '__main__':
         
     filenum = len(files)
 
-    # shared array
     signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)
     
-    # initialize pool
-    aux_data = (signatures,files,coefs)
+    aux_data = (signatures,files,coeffs)
     
     with mp.Pool(mp.cpu_count(), initializer, (aux_data,)) as p:
     
@@ -86,5 +77,4 @@ if __name__ == '__main__':
         results = [r for l in tqdm(p.imap_unordered(hashcount_wrapper,range(1,filenum),
             chunksize=100),total=filenum-1) for r in l]
 
-    # group results
     group.print_dupes(group.group(results))

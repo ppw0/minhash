@@ -1,8 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# seqmatch.py: returns all similar files, based on matching sequences.
+# seqmatch.py
 
-# similarity function based on SequenceMatcher
 from difflib import SequenceMatcher as sm
 import itertools
 import group
