@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# group.py: groups related items together.
+# group.py
 
-# finding common items in a group of lists is finding connected components in a graph
 import networkx
 from networkx.algorithms.components.connected import connected_components
 
