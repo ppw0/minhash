@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # minhash_m_init.py
 
-from __future__ import division
 from binascii import crc32
 from tqdm import tqdm
 import ctypes
@@ -19,7 +18,6 @@ NF = 100
 t = 0.7
 
 def processfile(i, aux_data):
-
     signatures, files, coeffs = aux_data
     
     with open(files[i],'r',errors='ignore') as fh:
@@ -36,11 +34,8 @@ def processfile(i, aux_data):
         signatures[i*NF+j] = minhash
 
 def hashcount(i, aux_data):
-
     signatures, files, _ = aux_data
-    
-    return [(files[i],files[j]) for j in range(i-1, -1, -1) if sum(signatures[i*NF+k] == 
-        signatures[j*NF+k] for k in range(NF)) > t*NF]
+    return [(files[i],files[j]) for j in range(i-1, -1, -1) if sum(signatures[i*NF+k] == signatures[j*NF+k] for k in range(NF)) > t*NF]
 
 aux_data = None
             
@@ -55,26 +50,19 @@ def processfile_wrapper(var_data):
     return processfile(var_data, aux_data)
     
 if __name__ == '__main__':
-    
     coeffs = [[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)]
-
-    files = os.listdir('.')
     
+    files = [os.path.join(root,f) for root,_,fnames in os.walk('.') for f in fnames]
     if len(sys.argv) > 1:
         files = files[:int(sys.argv[1])]
-        
     filenum = len(files)
-
-    signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)
     
+    signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)
     aux_data = (signatures,files,coeffs)
     
     with mp.Pool(mp.cpu_count(), initializer, (aux_data,)) as p:
-    
-        for i in tqdm(p.imap(processfile_wrapper,range(filenum),chunksize=100),total=filenum):
+        for i in tqdm(p.imap(processfile_wrapper,range(filenum),chunksize=100),total=filenum,desc="shingling"):
             pass
-        
-        results = [r for l in tqdm(p.imap_unordered(hashcount_wrapper,range(1,filenum),
-            chunksize=100),total=filenum-1) for r in l]
+        results = [r for l in tqdm(p.imap_unordered(hashcount_wrapper,range(1,filenum),chunksize=100),total=filenum-1,desc="comparing") for r in l]
 
-    group.print_dupes(group.group(results))
+    group.print_complete(results)

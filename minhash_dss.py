@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # minhash_dss.py
 
-from __future__ import division
 from binascii import crc32
 from tqdm import tqdm
 import ctypes
@@ -43,26 +42,24 @@ def hashcount(i):
     return l
 
 if __name__ == '__main__':
-    
     coeffs = [[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)]
     
-    # get list of files and their sizes, sort it by size
-    files = [(f,os.path.getsize(f)) for f in os.listdir('.')]
+    # get list of files with their sizes, sort by size
+    files = []
+    for root,_,filenames in os.walk('.'):
+        for f in filenames:
+            path = os.path.join(root,f)
+            files.append((path,os.path.getsize(path)))
     files.sort(key = lambda x: x[1], reverse = True)
-    
     if len(sys.argv) > 1:
         files = files[:int(sys.argv[1])]
-        
     filenum = len(files)
-
+    
     signatures = mp.RawArray(ctypes.c_ulong, filenum*NF)
     
     with mp.Pool(mp.cpu_count()) as p:
-    
-        for i in tqdm(p.imap(processfile,range(filenum)),total=filenum):
+        for i in tqdm(p.imap(processfile,range(filenum)),total=filenum,desc="shingling"):
             pass
-    
-        results = [r for l in tqdm(p.imap_unordered(hashcount,range(1,filenum),chunksize=100),
-            total=filenum-1) for r in l]
+        results = [r for l in tqdm(p.imap_unordered(hashcount,range(1,filenum),chunksize=100),total=filenum-1,desc="comparing") for r in l]
 
-    group.print_dupes(group.group(results))
+    group.print_complete(results)

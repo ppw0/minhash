@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # minhash_m.py
 
-from __future__ import division
 from binascii import crc32
 from tqdm import tqdm
 import ctypes
@@ -35,18 +34,14 @@ def processfile(i):
 
 # similarity function
 def hashcount(i):
-    return [(files[i],files[j]) for j in range(i-1, -1, -1) if sum(signatures[i*NF+k] == 
-        signatures[j*NF+k] for k in range(NF)) > t*NF]
+    return [(files[i],files[j]) for j in range(i-1, -1, -1) if sum(signatures[i*NF+k] == signatures[j*NF+k] for k in range(NF)) > t*NF]
 
 if __name__ == '__main__':
-
     coeffs = [[random.randint(0,MAXHASH) for j in range(NF)] for i in range(2)]
     
-    files = os.listdir('.')
-    
+    files = [os.path.join(root,f) for root,_,fnames in os.walk('.') for f in fnames]
     if len(sys.argv) > 1:
         files = files[:int(sys.argv[1])]
-        
     filenum = len(files)
 
     # shared array
@@ -54,12 +49,8 @@ if __name__ == '__main__':
     
     # initialize pool
     with mp.Pool(mp.cpu_count()) as p:
-    
-        for i in tqdm(p.imap(processfile,range(filenum),chunksize=100),total=filenum):
+        for i in tqdm(p.imap(processfile,range(filenum),chunksize=100),total=filenum,desc="shingling"):
             pass
-        
-        results = [r for l in tqdm(p.imap_unordered(hashcount,range(1,filenum),chunksize=100),
-            total=filenum-1) for r in l]
+        results = [r for l in tqdm(p.imap_unordered(hashcount,range(1,filenum),chunksize=100),total=filenum-1,desc="comparing") for r in l]
 
-    # group results
-    group.print_dupes(group.group(results))
+    group.print_complete(results)
